@@ -116,6 +116,23 @@ impl TrafficFilterNewRequest {
         self
     }
 
+    /// The matchall filter matches every packet and applies actions, etc
+    /// Equivalent to `tc filter ... matchall`
+    pub fn matchall(mut self, data: Vec<tc::matchall::Nla>) -> Self {
+        assert!(!self
+            .message
+            .nlas
+            .iter()
+            .any(|nla| matches!(nla, tc::Nla::Kind(_))));
+        self.message
+            .nlas
+            .push(tc::Nla::Kind(tc::matchall::KIND.to_string()));
+        self.message.nlas.push(tc::Nla::Options(
+            data.into_iter().map(tc::TcOpt::Matchall).collect(),
+        ));
+        self
+    }
+
     /// The 32bit filter allows to match arbitrary bitfields in the packet.
     /// Equivalent to `tc filter ... u32`.
     pub fn u32(mut self, data: Vec<tc::u32::Nla>) -> Self {
